@@ -1,1 +1,1 @@
-# AI-Checkers
+# AI-Checkers in python
