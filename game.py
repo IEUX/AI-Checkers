@@ -106,19 +106,17 @@ class Damier(tk.Canvas):
         return None
 
     def checkLeft(self, x, y):
-        if self.checkerBoard[x + -self.playerTurn, y - 1] == 0 or self.checkerBoard[
-            x + -2 * self.playerTurn, y - 2] == 0:
-            print("check left yes")
+        if self.checkerBoard[x + -self.playerTurn, y - 1] == 0:
             return True
-        print("check left no")
+        if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
+            return True
         return False
 
     def checkRight(self, x, y):
-        if self.checkerBoard[x + -self.playerTurn, y + 1] == 0 or self.checkerBoard[
-            x + 2 * self.playerTurn, y + 2] == 0:
-            print("check right yes")
+        if self.checkerBoard[x + -self.playerTurn, y + 1] == 0:
             return True
-        print("check right no")
+        if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
+            return True
         return False
 
     def moveLeft(self, x, y):
@@ -134,8 +132,8 @@ class Damier(tk.Canvas):
         return False
 
     def takeLeft(self, x, y):
-        if (self.lastPostion[0] - 2 == y and self.lastPostion[
-            1] + -2 * self.playerTurn == x) and self.checkerBoard[
+        if self.lastPostion[0] - 2 == y and self.lastPostion[
+            1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[
             self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] - 1] == -self.playerTurn:
             print("take left yes")
             return True
@@ -143,8 +141,8 @@ class Damier(tk.Canvas):
         return False
 
     def takeRight(self, x, y):
-        if (self.lastPostion[0] + 2 == y and self.lastPostion[
-            1] + -2 * self.playerTurn == x) and self.checkerBoard[
+        if self.lastPostion[0] + 2 == y and self.lastPostion[
+            1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[
             self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
             print("take right yes")
             return True
@@ -185,7 +183,6 @@ class Damier(tk.Canvas):
 
     def turn(self, event):
         self.checkWin()
-
         # select pion
         if self.state == 0:
             pionPostion = self.choosePion(event)
@@ -208,8 +205,6 @@ class Damier(tk.Canvas):
                 self.checkerBoard[0][i] = 2
             if self.checkerBoard[9][i] == -1:
                 self.checkerBoard[9][i] = -2
-
-    
 
 
     # WIN
