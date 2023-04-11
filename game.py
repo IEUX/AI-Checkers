@@ -1,6 +1,7 @@
 import tkinter as tk
 import numpy as np
 import pandas as pd
+import AIChecker
 
 
 class Damier(tk.Canvas):
@@ -10,7 +11,7 @@ class Damier(tk.Canvas):
     playerTurn = 1
     state = 0
     lastPostion = None
-
+    
     def __init__(self, parent, height, width, color1, color2):
         # attributs
         self.parent = parent
@@ -18,6 +19,7 @@ class Damier(tk.Canvas):
         self.color2 = color2
         self.height = height
         self.width = width
+        self.ai = AIChecker.AI(-1, self.createPosMap())
         # tkinter  
         tk.Canvas.__init__(self, parent, height=height, width=width, bg=color1)
         for i in range(10):
@@ -108,15 +110,17 @@ class Damier(tk.Canvas):
     def checkLeft(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y - 1] == 0:
             return True
-        if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
-            return True
+        if y-2 <0:
+            if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
+                return True
         return False
 
     def checkRight(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y + 1] == 0:
             return True
-        if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
-            return True
+        if y+2 >9:
+            if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
+                return True
         return False
 
     def moveLeft(self, x, y):
@@ -141,9 +145,7 @@ class Damier(tk.Canvas):
         return False
 
     def takeRight(self, x, y):
-        if self.lastPostion[0] + 2 == y and self.lastPostion[
-            1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[
-            self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
+        if self.lastPostion[0] + 2 == y and self.lastPostion[1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
             print("take right yes")
             return True
         print("take right no")
@@ -177,13 +179,17 @@ class Damier(tk.Canvas):
             self.playerTurn = -self.playerTurn
             self.checkerBoard[self.lastPostion[1]][self.lastPostion[0]] = 0
             damier.refreshMap()
-        return
+            return 0
+        return 1
 
     # GAMEPLAY     
 
     def turn(self, event):
         self.checkWin()
-        # select pion
+        # ADD AI TURN HERE
+            
+            
+        # select player pion
         if self.state == 0:
             pionPostion = self.choosePion(event)
             if pionPostion == None:
@@ -194,10 +200,20 @@ class Damier(tk.Canvas):
             return
         # select next case
         if self.state == 1:
-
             self.pionMove(event)
             print(self.playerTurn)
-
+            #AITurn
+            if self.playerTurn == -1:
+                aiEvent = self.ai.chooseMove()
+                aiPion = self.choosePion(aiEvent)
+                while aiPion == None:
+                    aiEvent = self.ai.chooseMove()
+                    aiPion = self.choosePion(aiEvent)
+                self.lastPostion = aiPion
+                while self.pionMove(aiEvent) == 1:
+                    aiEvent = self.ai.chooseMove()
+                    print(aiEvent.x,aiEvent.y)
+            
     # change common pion to a dame (1 to 2 or -1 to -2)
     def checkDamier(self):
         for i in range(10):
@@ -205,8 +221,7 @@ class Damier(tk.Canvas):
                 self.checkerBoard[0][i] = 2
             if self.checkerBoard[9][i] == -1:
                 self.checkerBoard[9][i] = -2
-
-
+        
     # WIN
     def checkWin(self):
         if -1 not in self.checkerBoard and -2 not in self.checkerBoard:
@@ -240,7 +255,7 @@ class Damier(tk.Canvas):
 
 
 
-    # DF
+    # DFcheckLeft
 
     # def appendFD(self,df,case):
     #     if self.playerTurn == 1:
