@@ -155,7 +155,7 @@ class Damier(tk.Canvas):
         case = self.getCase(event)
         x = case[1]
         y = case[0]
-        self.appendFD(df, case)
+        # self.appendFD(df, case)
         if self.moveLeft(x, y):
             self.checkerBoard[x][y] = self.playerTurn
             return True
@@ -193,11 +193,24 @@ class Damier(tk.Canvas):
                 return
             self.lastPostion = pionPostion
             self.state = 1
+
             return
         # select next case
         if self.state == 1:
+
             self.pionMove(event)
             print(self.playerTurn)
+
+    # change common pion to a dame (1 to 2 or -1 to -2)
+    def checkDamier(self):
+        for i in range(10):
+            if self.checkerBoard[0][i] == 1:
+                self.checkerBoard[0][i] = 2
+            if self.checkerBoard[9][i] == -1:
+                self.checkerBoard[9][i] = -2
+
+    
+
 
     # WIN
     def checkWin(self):
@@ -209,28 +222,43 @@ class Damier(tk.Canvas):
     def printWinner(self):
         winner = self.checkWin()
         if winner == 1:
-            self.dfCSV(df)
+            # self.dfCSV(df)
             print("White pion win")
-            return winner
+            self.restart()
         elif winner == -1:
-            self.dfCSV(df)
+            # self.dfCSV(df)
             print("Black pion win")
-            return winner
+            self.restart()
+
+    #create winner state
+    def restart(self):
+        pagWin = tk.Toplevel()
+        pagWin.title("Winner")
+        pagWin.geometry("200x100")
+        pagWin.resizable(False, False)
+        pagWin.configure(bg="white")
+        winner = self.checkWin()
+        if winner == 1:
+            tk.Label(pagWin, text="White pion win", bg="white", fg="black").pack()
+        elif winner == -1:
+            tk.Label(pagWin, text="Black pion win", bg="white", fg="black").pack()
+
+
 
     # DF
 
-    def appendFD(self,df,case):
-        if self.playerTurn == 1:
-            df = df.append({'player1' : case}, ignore_index=True)
-            return df
-        if self.playerTurn == -1:
-            df = df.append({'player2' : case}, ignore_index=True)
-            return df
+    # def appendFD(self,df,case):
+    #     if self.playerTurn == 1:
+    #         df = df.append({'player1' : case}, ignore_index=True)
+    #         return df
+    #     if self.playerTurn == -1:
+    #         df = df.append({'player2' : case}, ignore_index=True)
+    #         return df
 
 
     # put df in csv
-    def dfCSV(self,df):
-        df.to_csv('data.csv', index=False)
+    # def dfCSV(self,df):
+    #     df.to_csv('data.csv', index=False)
 
 
 
