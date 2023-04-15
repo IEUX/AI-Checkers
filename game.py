@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy as np
 import os
 import pandas as pd
+import AIChecker
 
 
 class Damier(tk.Canvas):
@@ -13,7 +14,7 @@ class Damier(tk.Canvas):
     playerTurn = 1
     state = 0
     lastPostion = None
-
+    
     def __init__(self, parent, height, width, color1, color2):
         # attributs
         self.parent = parent
@@ -21,6 +22,7 @@ class Damier(tk.Canvas):
         self.color2 = color2
         self.height = height
         self.width = width
+        self.ai = AIChecker.AI(-1, self.createPosMap())
         # tkinter  
         tk.Canvas.__init__(self, parent, height=height, width=width, bg=color1)
         for i in range(10):
@@ -39,8 +41,6 @@ class Damier(tk.Canvas):
 
     # UTILS
     def createPosMap(self):
-        self.height
-        self.width
         positions = []
         for i in range(10):
             position = []
@@ -73,56 +73,60 @@ class Damier(tk.Canvas):
         positions = self.createPosMap()
         for i in range(10):
             for j in range(10):
-                if x > positions[i][j][0] and x <= positions[i][j][1] and y > positions[i][j][2] and y <= \
-                        positions[i][j][3]:
+                if x > positions[i][j][0] and x <= positions[i][j][1] and y > positions[i][j][2] and y <= positions[i][j][3]:
                     return (i, j)
 
     # MOVEMENTS
     # Check  if I can choose this pion
     def choosePion(self, event):
         case = self.getCase(event)
-        x = case[1]
-        y = case[0]
-        if self.checkerBoard[x][y] == self.playerTurn:
-            print(f"y pick: {y}")
-            if y == 0:
-                if self.checkRight(x, y):
+        y = case[1]
+        x = case[0]
+        if self.checkerBoard[y][x] == self.playerTurn:
+            print(f"y pick: {x}")
+            if x == 0:
+                if self.checkRight(y, x):
                     # change the color of the pion chosen
                     self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                      (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
                     print("unique right")
                     self.dft(case)
                     return case
-            if y == 9:
-                if self.checkLeft(x, y):
+                return None
+            if x == 9:
+                if self.checkLeft(y, x):
                     # change the color of the pion chosen
                     self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                      (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
                     print("unique left")
                     self.dft(case)
                     return case
-            if self.checkLeft(x, y) or self.checkRight(x, y):
+                return None
+            if self.checkLeft(y, x) or self.checkRight(y, x):
                 # change the color of the pion chosen
                 self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                  (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
                 print("left or right")
                 self.dft(case)
                 return case
+            return None
         print("no move")
         return None
 
     def checkLeft(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y - 1] == 0:
             return True
-        if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
-            return True
+        if y-2 >0:
+            if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
+                return True
         return False
 
     def checkRight(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y + 1] == 0:
             return True
-        if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
-            return True
+        if y+2 <9:
+            if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
+                return True
         return False
 
     def moveLeft(self, x, y):
@@ -147,9 +151,7 @@ class Damier(tk.Canvas):
         return False
 
     def takeRight(self, x, y):
-        if self.lastPostion[0] + 2 == y and self.lastPostion[
-            1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[
-            self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
+        if self.lastPostion[0] + 2 == y and self.lastPostion[1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
             print("take right yes")
             return True
         print("take right no")
@@ -157,23 +159,23 @@ class Damier(tk.Canvas):
 
     def chooseCase(self, event):
         case = self.getCase(event)
-        x = case[1]
-        y = case[0]
-        if self.moveLeft(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        y = case[1]
+        x = case[0]
+        if self.moveLeft(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.dfp(case)
             return True
-        if self.moveRight(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.moveRight(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.dfp(case)
             return True
-        if self.takeLeft(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.takeLeft(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] - 1] = 0
             self.dfp(case)
             return True
-        if self.takeRight(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.takeRight(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] = 0
             self.dfp(case)
             return True
@@ -186,13 +188,20 @@ class Damier(tk.Canvas):
             self.playerTurn = -self.playerTurn
             self.checkerBoard[self.lastPostion[1]][self.lastPostion[0]] = 0
             damier.refreshMap()
-        return
+            return 0
+        return 1
 
     # GAMEPLAY
 
     def turn(self, event):
 
         # select pion
+        self.checkWin()
+        # ADD AI TURN HERE
+            
+            
+        # select player pion
+
         if self.state == 0:
             pionPostion = self.choosePion(event)
             if pionPostion == None:
@@ -206,17 +215,18 @@ class Damier(tk.Canvas):
             self.pionMove(event)
             self.checkWin()
             print(self.playerTurn)
+            #AITurn
+            if self.playerTurn == -1:
+                aiEvent = self.ai.chooseMove()
+                aiPion = self.choosePion(aiEvent)
+                while aiPion == None:
+                    aiEvent = self.ai.chooseMove()
+                    aiPion = self.choosePion(aiEvent)
+                self.lastPostion = aiPion
+                while self.pionMove(aiEvent) == 1:
+                    aiEvent = self.ai.chooseMove()
+                    print(aiEvent.x,aiEvent.y)
 
-    # change common pion to a dame (1 to 2 or -1 to -2)
-    def checkDamier(self):
-        for i in range(10):
-            if self.checkerBoard[0][i] == 1:
-                self.checkerBoard[0][i] = 2
-            if self.checkerBoard[9][i] == -1:
-                self.checkerBoard[9][i] = -2
-
-
-    # WIN
     def checkWin(self):
         if -1 not in self.checkerBoard and -2 not in self.checkerBoard:
             df = pd.read_csv("data.csv")
@@ -262,6 +272,7 @@ class Damier(tk.Canvas):
             df = df.append({"p1t": np.nan, "p2t": case, "p1p": np.nan, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
             df.to_csv("data.csv", index=False)
 
+
     def dfp(self,case):
         if self.playerTurn == 1:
             df = pd.read_csv("data.csv")
@@ -271,6 +282,28 @@ class Damier(tk.Canvas):
             df = pd.read_csv("data.csv")
             df = df.append({"p1t": np.nan, "p2t": np.nan, "p1p": np.nan, "p2p": case, "winner": np.nan}, ignore_index=True)
             df.to_csv("data.csv", index=False)
+
+    # DFcheckLeft
+
+    # def appendFD(self,df,case):
+    #     if self.playerTurn == 1:
+    #         df = df.append({'player1' : case}, ignore_index=True)
+    #         return df
+    #     if self.playerTurn == -1:
+    #         df = df.append({'player2' : case}, ignore_index=True)
+    #         return df
+
+
+    # put df in csv
+    # def dfCSV(self,df):
+    #     df.to_csv('data.csv', index=False)
+
+
+
+
+
+
+
 
 
 
