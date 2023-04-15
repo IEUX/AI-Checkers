@@ -2,7 +2,7 @@ import tkinter as tk
 import numpy as np
 import pandas as pd
 import AIChecker
-
+import random
 
 class Damier(tk.Canvas):
     global df
@@ -80,37 +80,35 @@ class Damier(tk.Canvas):
     # Check  if I can choose this pion
     def choosePion(self, event):
         case = self.getCase(event)
-        x = case[1]
-        y = case[0]
-        if self.checkerBoard[x][y] == self.playerTurn:
-            print(f"y pick: {y}")
-            if y == 0:
-                if self.checkRight(x, y):
+        y = case[1]
+        x = case[0]
+        if self.checkerBoard[y][x] == self.playerTurn:
+            print(f"y pick: {x}\n x pick: {y}")
+            if x == 0:
+                if self.checkRight(y, x):
                     # change the color of the pion chosen
                     self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                      (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
-                    print("unique right")
                     return case
-            if y == 9:
-                if self.checkLeft(x, y):
+                return None
+            if x == 9:
+                if self.checkLeft(y, x):
                     # change the color of the pion chosen
                     self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                      (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
-                    print("unique left")
                     return case
-            if self.checkLeft(x, y) or self.checkRight(x, y):
+                return None
+            if self.checkLeft(y, x) or self.checkRight(y, x):
                 # change the color of the pion chosen
                 self.create_oval(case[0] * self.height / 10, case[1] * self.width / 10,
                                  (case[0] + 1) * self.height / 10, (case[1] + 1) * self.width / 10, fill="red")
-                print("left or right")
                 return case
-        print("no move")
         return None
 
     def checkLeft(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y - 1] == 0:
             return True
-        if y-2 <0:
+        if y-2 > 0:
             if self.checkerBoard[x + -self.playerTurn, y - 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y - 2] == 0:
                 return True
         return False
@@ -118,7 +116,7 @@ class Damier(tk.Canvas):
     def checkRight(self, x, y):
         if self.checkerBoard[x + -self.playerTurn, y + 1] == 0:
             return True
-        if y+2 >9:
+        if y+2 < 9:
             if self.checkerBoard[x + -self.playerTurn, y + 1] == -self.playerTurn and self.checkerBoard[x + 2 * -self.playerTurn, y + 2] == 0:
                 return True
         return False
@@ -139,35 +137,31 @@ class Damier(tk.Canvas):
         if self.lastPostion[0] - 2 == y and self.lastPostion[
             1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[
             self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] - 1] == -self.playerTurn:
-            print("take left yes")
             return True
-        print("take left no")
         return False
 
     def takeRight(self, x, y):
         if self.lastPostion[0] + 2 == y and self.lastPostion[1] + -2 * self.playerTurn == x and self.checkerBoard[x,y] == 0 and self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] == -self.playerTurn:
-            print("take right yes")
             return True
-        print("take right no")
         return False
 
     def chooseCase(self, event):
         case = self.getCase(event)
-        x = case[1]
-        y = case[0]
+        y = case[1]
+        x = case[0]
         # self.appendFD(df, case)
-        if self.moveLeft(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.moveLeft(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             return True
-        if self.moveRight(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.moveRight(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             return True
-        if self.takeLeft(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.takeLeft(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] - 1] = 0
             return True
-        if self.takeRight(x, y):
-            self.checkerBoard[x][y] = self.playerTurn
+        if self.takeRight(y, x):
+            self.checkerBoard[y][x] = self.playerTurn
             self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] = 0
             return True
         return False
@@ -204,15 +198,35 @@ class Damier(tk.Canvas):
             print(self.playerTurn)
             #AITurn
             if self.playerTurn == -1:
-                aiEvent = self.ai.chooseMove()
+                # DEV AI
+                Pions = self.ai.checkMoves(self.checkerBoard)
+                possiblePick = []
+                possibleMove = []
+                for i in range(0,len(Pions)):  
+                    pionPosition = Pions[i]
+                    x = pionPosition[0]
+                    y = pionPosition[1]
+                    if y == 0:
+                        if self.checkRight(x,y):
+                            possiblePick.append([x,y])
+                            continue
+                    if y == 9:
+                        if self.checkLeft(x,y):
+                            possiblePick.append([x,y])
+                            continue
+                    if self.checkLeft(x,y) or self.checkRight(x,y):
+                        possiblePick.append([x,y])
+                #END DEV
+                aiEvent = self.ai.chooseMove(possiblePick)
+                print(aiEvent)
                 aiPion = self.choosePion(aiEvent)
-                while aiPion == None:
-                    aiEvent = self.ai.chooseMove()
-                    aiPion = self.choosePion(aiEvent)
-                self.lastPostion = aiPion
-                while self.pionMove(aiEvent) == 1:
-                    aiEvent = self.ai.chooseMove()
-                    print(aiEvent.x,aiEvent.y)
+                print(aiPion)
+                # while aiPion == None:
+                #     aiEvent = self.ai.chooseMove()
+                #     aiPion = self.choosePion(aiEvent)
+                # self.lastPostion = aiPion
+                # while self.pionMove(aiEvent) == 1:
+                #     aiEvent = self.ai.chooseMove()
             
     # change common pion to a dame (1 to 2 or -1 to -2)
     def checkDamier(self):
