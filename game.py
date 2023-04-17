@@ -4,10 +4,15 @@ import numpy as np
 import pandas as pd
 import AIChecker
 import random
+import warnings
+
 
 class Damier(tk.Canvas):
-    global df
-    df = pd.DataFrame(columns=['player1', 'player2', 'winner'])
+    if not os.path.exists("data.csv"):
+        df = pd.DataFrame(columns=["Player", "AI"])
+        df.to_csv("data.csv", index=False)
+    else:   
+        df = pd.DataFrame(columns=["Player", "AI"])
     checkerBoard = np.zeros((10, 10))
     playerTurn = 1
     state = 0
@@ -147,7 +152,6 @@ class Damier(tk.Canvas):
         case = self.getCase(event)
         y = case[1]
         x = case[0]
-        # self.appendFD(df, case)
         if self.moveLeft(y, x):
             self.checkerBoard[y][x] = self.playerTurn
             return True
@@ -185,14 +189,14 @@ class Damier(tk.Canvas):
             self.playerTurn = -self.playerTurn
             self.checkerBoard[self.lastPostion[1]][self.lastPostion[0]] = 0
             self.removePion()
-            damier.refreshMap()
+            self.refreshMap()
+            self.checkWin()
             return 0
         return 1
 
     # GAMEPLAY     
 
     def turn(self, event):
-        self.checkWin()
         # ADD AI TURN HERE
         # select player pion
         if self.state == 0:
@@ -205,6 +209,11 @@ class Damier(tk.Canvas):
         # select next case
         if self.state == 1:
             self.pionMove(event)
+            print(event)
+            print(self.playerTurn)
+            pPtake = self.lastPostion
+            pPpose = (self.getCase(event))
+            self.checkWin()
             #AITurn
             if self.playerTurn == -1:
                 # DEV AI
@@ -247,7 +256,10 @@ class Damier(tk.Canvas):
                 previousPosition = bestMove[0]
                 self.lastPostion = (previousPosition[1],previousPosition[0])
                 self.pionMove(pick)
-    # change common pion to a dame (1 to 2 or -1 to -2)
+                pAItake = self.lastPostion
+                pAIpose = self.getCase(pick)
+                self.dfadppend(pPtake,pPpose,pAItake,pAIpose)
+
     def checkMovable(self, x, y):
         possibleMoves = []
         if y != 0:
@@ -274,78 +286,43 @@ class Damier(tk.Canvas):
         
     # WIN
     def checkWin(self):
-        if -1 not in self.checkerBoard and -2 not in self.checkerBoard:
-            return 1
-        if 1 not in self.checkerBoard and 2 not in self.checkerBoard:
-            return -1
+        if -1 not in self.checkerBoard:
+            self.win = 1
+            self.df_CSV()
+            self.printWinner(self.win)
+            exit(0)
+        if 1 not in self.checkerBoard:
+            self.win = -1
+            self.df_CSV()
+            self.printWinner(self.win)
+            exit(0)
 
-    def printWinner(self):
-        winner = self.checkWin()
-        if winner == 1:
-            # self.dfCSV(df)
+    def printWinner(self,win):
+        if win == 1:
             print("White pion win")
-            self.restart()
-        elif winner == -1:
-            # self.dfCSV(df)
+        elif win == -1:
             print("Black pion win")
-            self.restart()
 
+    def dfadppend(self,pPtake,pPpose ,pAItake, pAIpose):
+        tuple1 = (pPtake, pPpose)
+        tuple2 = (pAItake, pAIpose)
+        df = self.df.append({"Player": tuple1, "AI": tuple2}, ignore_index=True)
+        self.df = df
 
-    #create winner state
-    def restart(self):
-        pagWin = tk.Toplevel()
-        pagWin.title("Winner")
-        pagWin.geometry("200x100")
-        pagWin.resizable(False, False)
-        pagWin.configure(bg="white")
-        winner = self.checkWin()
-        if winner == 1:
-            tk.Label(pagWin, text="White pion win", bg="white", fg="black").pack()
-        elif winner == -1:
-            tk.Label(pagWin, text="Black pion win", bg="white", fg="black").pack()
+    def df_CSV(self):
+        if self.win == 1:
+            self.winn = "White pion win"
+        elif self.win == -1:
+            self.winn = "Black pion win"
+        data = pd.read_csv("data.csv")
+        data.insert(0, "Player", self.df["Player"], True)
+        data.insert(1, "AI", self.df["AI"], True)
+        data.insert(2, "Winner", self.winn, True)
+        data.to_csv("data.csv", index=False)
 
-    def dft(self,case):
-        if self.playerTurn == 1:
-            df = pd.read_csv("data.csv")
-            df = df.append({"p1t": case, "p2t": np.nan, "p1p": np.nan, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
-            df.to_csv("data.csv", index=False)
-        else:
-            df = pd.read_csv("data.csv")
-            df = df.append({"p1t": np.nan, "p2t": case, "p1p": np.nan, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
-            df.to_csv("data.csv", index=False)
-
-
-    def dfp(self,case):
-        if self.playerTurn == 1:
-            df = pd.read_csv("data.csv")
-            df = df.append({"p1t": np.nan, "p2t": np.nan, "p1p": case, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
-            df.to_csv("data.csv", index=False)
-        else:
-            df = pd.read_csv("data.csv")
-            df = df.append({"p1t": np.nan, "p2t": np.nan, "p1p": np.nan, "p2p": case, "winner": np.nan}, ignore_index=True)
-            df.to_csv("data.csv", index=False)
-
-
-    # DFcheckLeft
-
-    # def appendFD(self,df,case):
-    #     if self.playerTurn == 1:
-    #         df = df.append({'player1' : case}, ignore_index=True)
-    #         return df
-    #     if self.playerTurn == -1:
-    #         df = df.append({'player2' : case}, ignore_index=True)
-    #         return df
-
-
-    # put df in csv
-    # def dfCSV(self,df):
-    #     df.to_csv('data.csv', index=False)
-
+warnings.filterwarnings("ignore")
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
-if not os.path.exists("data.csv"):
-        df = pd.DataFrame(columns=["p1t", "p1p", "p2t", "p2p", "winner"])
-        df.to_csv("data.csv", index=False)
 damier.refreshMap()
 damier.bind("<Button-1>", damier.turn)
 fenetre.mainloop()
