@@ -300,10 +300,7 @@ class Damier(tk.Canvas):
 
     def printWinner(self,win):
         if win == 1:
-    def printWinner(self,win):
-        if win == 1:
             print("White pion win")
-        elif win == -1:
         elif win == -1:
             print("Black pion win")
 
@@ -318,48 +315,17 @@ class Damier(tk.Canvas):
             self.winn = "White pion win"
         elif self.win == -1:
             self.winn = "Black pion win"
+
         data = pd.read_csv("data.csv")
         data.insert(0, "Player", self.df["Player"], True)
         data.insert(1, "AI", self.df["AI"], True)
         data.insert(2, "Winner", self.winn, True)
+
         data.to_csv("data.csv", index=False)
+
+
 
 warnings.filterwarnings("ignore")
-
-
-
-
-    def dfadppend(self,pPtake,pPpose ,pAItake, pAIpose):
-        tuple1 = (pPtake, pPpose)
-        tuple2 = (pAItake, pAIpose)
-        df = self.df.append({"Player": tuple1, "AI": tuple2}, ignore_index=True)
-        self.df = df
-
-    def df_CSV(self):
-        if self.win == 1:
-            self.winn = "White pion win"
-        elif self.win == -1:
-            self.winn = "Black pion win"
-
-        data = pd.read_csv("data.csv")
-        data.insert(0, "Player", self.df["Player"], True)
-        data.insert(1, "AI", self.df["AI"], True)
-        data.insert(2, "Winner", self.winn, True)
-
-        data.to_csv("data.csv", index=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
 damier.refreshMap()
