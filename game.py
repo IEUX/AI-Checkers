@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 import numpy as np
 import pandas as pd
@@ -201,7 +202,7 @@ class Damier(tk.Canvas):
                 # DEV AI
                 Pions = self.ai.checkMoves(self.checkerBoard)
                 possiblePick = []
-                possibleMove = []
+                possibleMove = {}
                 for i in range(0,len(Pions)):  
                     pionPosition = Pions[i]
                     x = pionPosition[0]
@@ -267,6 +268,26 @@ class Damier(tk.Canvas):
         elif winner == -1:
             tk.Label(pagWin, text="Black pion win", bg="white", fg="black").pack()
 
+    def dft(self,case):
+        if self.playerTurn == 1:
+            df = pd.read_csv("data.csv")
+            df = df.append({"p1t": case, "p2t": np.nan, "p1p": np.nan, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
+            df.to_csv("data.csv", index=False)
+        else:
+            df = pd.read_csv("data.csv")
+            df = df.append({"p1t": np.nan, "p2t": case, "p1p": np.nan, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
+            df.to_csv("data.csv", index=False)
+
+
+    def dfp(self,case):
+        if self.playerTurn == 1:
+            df = pd.read_csv("data.csv")
+            df = df.append({"p1t": np.nan, "p2t": np.nan, "p1p": case, "p2p": np.nan, "winner": np.nan}, ignore_index=True)
+            df.to_csv("data.csv", index=False)
+        else:
+            df = pd.read_csv("data.csv")
+            df = df.append({"p1t": np.nan, "p2t": np.nan, "p1p": np.nan, "p2p": case, "winner": np.nan}, ignore_index=True)
+            df.to_csv("data.csv", index=False)
 
 
     # DFcheckLeft
@@ -300,8 +321,12 @@ class Damier(tk.Canvas):
 
 
 
+
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
+if not os.path.exists("data.csv"):
+        df = pd.DataFrame(columns=["p1t", "p1p", "p2t", "p2p", "winner"])
+        df.to_csv("data.csv", index=False)
 damier.refreshMap()
 damier.bind("<Button-1>", damier.turn)
 fenetre.mainloop()
