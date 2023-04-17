@@ -84,7 +84,6 @@ class Damier(tk.Canvas):
         y = case[1]
         x = case[0]
         if self.checkerBoard[y][x] == self.playerTurn:
-            print(f"y pick: {x}\n x pick: {y}")
             if x == 0:
                 if self.checkRight(y, x):
                     # change the color of the pion chosen
@@ -166,6 +165,20 @@ class Damier(tk.Canvas):
             self.checkerBoard[self.lastPostion[1] + -self.playerTurn, self.lastPostion[0] + 1] = 0
             return True
         return False
+    
+    def checkCase(self, case):
+        x = case[1]
+        y = case[0]
+        print(x, y)
+        if self.moveLeft(y, x):
+            return True
+        if self.moveRight(y, x):
+            return True
+        if self.takeLeft(y, x):
+            return True
+        if self.takeRight(y, x):
+            return True
+        return False
 
     def pionMove(self, event):
         if self.chooseCase(event):
@@ -190,8 +203,8 @@ class Damier(tk.Canvas):
             if pionPostion == None:
                 return
             self.lastPostion = pionPostion
+            print(self.lastPostion)
             self.state = 1
-
             return
         # select next case
         if self.state == 1:
@@ -218,18 +231,39 @@ class Damier(tk.Canvas):
                     if self.checkLeft(x,y) or self.checkRight(x,y):
                         possiblePick.append([x,y])
                 #END DEV
-                aiEvent = self.ai.chooseMove(possiblePick)
-                print(aiEvent)
-                aiPion = self.choosePion(aiEvent)
-                print(aiPion)
-                # while aiPion == None:
-                #     aiEvent = self.ai.chooseMove()
-                #     aiPion = self.choosePion(aiEvent)
-                # self.lastPostion = aiPion
-                # while self.pionMove(aiEvent) == 1:
-                #     aiEvent = self.ai.chooseMove()
-            
+                #aiEvent = self.ai.chooseMove(possiblePick)
+                
+                for i in range(0,len(possiblePick)):
+                    pick = self.ai.chooseMove(possiblePick[i])
+                    pion = self.getCase(pick)
+                    x = pion[0]
+                    y = pion[1]
+                    possibleMove[pion] = self.checkMovable(x,y)
+                for key, value in possibleMove.items():
+                    print("Pion : ",key,"\nPossible move : ",value)
+                pion = self.ai.chooseMove(random.choice(list(possibleMove.keys())))
+                positionPick = random.choice(possibleMove[self.getCase(pion)])
+                pick = self.ai.chooseMove((positionPick[1],positionPick[0]))
+                previousPosition = self.getCase(pion)
+                self.lastPostion = (previousPosition[1],previousPosition[0])
+                self.pionMove(pick)
     # change common pion to a dame (1 to 2 or -1 to -2)
+    def checkMovable(self, x, y):
+        possibleMoves = []
+        if y != 0:
+            if self.checkerBoard[x+-self.playerTurn,y-1] == 0:
+                possibleMoves.append((x+-self.playerTurn,y-1))
+        if y != 9:
+            if self.checkerBoard[x+-self.playerTurn,y+1] == 0:
+                possibleMoves.append((x+-self.playerTurn,y+1))
+        if y > 1:
+            if self.checkerBoard[x+-self.playerTurn*2,y-2] == 0 and self.checkerBoard[x+-self.playerTurn,y-1] == -self.playerTurn:
+                possibleMoves.append((x+-self.playerTurn*2,y-2))
+        if y < 8:
+            if self.checkerBoard[x+-self.playerTurn*2,y+2] == 0 and self.checkerBoard[x+-self.playerTurn,y+1] == -self.playerTurn:
+                possibleMoves.append((x+-self.playerTurn*2,y+2))  
+        return possibleMoves     
+     
     def checkDamier(self):
         for i in range(10):
             if self.checkerBoard[0][i] == 1:
@@ -254,6 +288,7 @@ class Damier(tk.Canvas):
             # self.dfCSV(df)
             print("Black pion win")
             self.restart()
+
 
     #create winner state
     def restart(self):

@@ -6,8 +6,8 @@ class AI:
     def __init__(self,color,posMap) -> None:
         self.color = color
         self.posMap = posMap
-    def chooseMove(self,possiblePick):
-        pick = random.choice(possiblePick)
+    def chooseMove(self,pick):
+        
         postions = self.posMap[pick[0]][pick[1]] 
 
         x = (postions[0] + postions[1])/2
@@ -21,12 +21,13 @@ class AI:
                 if checkerBoard[i][j] == self.color:
                     Pions.append([i,j])
         return Pions
-    def checkPlayabeMoves(self,checkerBoard):
+    def checkPickablePion(self,checkerBoard):
         Pions = self.checkMoves(checkerBoard)
         possibleMoves = []
         for i in range(0,len(Pions)):
             possibleMoves.append(self.checkPosibleMoves(checkerBoard,Pions[i]))
         return possibleMoves
+
 
 
 class CustomEvent:
