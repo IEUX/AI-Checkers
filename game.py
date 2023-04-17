@@ -39,8 +39,6 @@ class Damier(tk.Canvas):
 
     # UTILS
     def createPosMap(self):
-        self.height
-        self.width
         positions = []
         for i in range(10):
             position = []
@@ -105,7 +103,7 @@ class Damier(tk.Canvas):
                 return case
         return None
 
-    def checkLeft(self, x, y):
+    def checkLeft(self, x, y):            
         if self.checkerBoard[x + -self.playerTurn, y - 1] == 0:
             return True
         if y-2 > 0:
@@ -186,6 +184,7 @@ class Damier(tk.Canvas):
             self.state = 0
             self.playerTurn = -self.playerTurn
             self.checkerBoard[self.lastPostion[1]][self.lastPostion[0]] = 0
+            self.removePion()
             damier.refreshMap()
             return 0
         return 1
@@ -195,21 +194,17 @@ class Damier(tk.Canvas):
     def turn(self, event):
         self.checkWin()
         # ADD AI TURN HERE
-            
-            
         # select player pion
         if self.state == 0:
             pionPostion = self.choosePion(event)
             if pionPostion == None:
                 return
             self.lastPostion = pionPostion
-            print(self.lastPostion)
             self.state = 1
             return
         # select next case
         if self.state == 1:
             self.pionMove(event)
-            print(self.playerTurn)
             #AITurn
             if self.playerTurn == -1:
                 # DEV AI
@@ -223,28 +218,33 @@ class Damier(tk.Canvas):
                     if y == 0:
                         if self.checkRight(x,y):
                             possiblePick.append([x,y])
-                            continue
+                        continue
                     if y == 9:
                         if self.checkLeft(x,y):
                             possiblePick.append([x,y])
-                            continue
+                        continue
                     if self.checkLeft(x,y) or self.checkRight(x,y):
                         possiblePick.append([x,y])
-                #END DEV
-                #aiEvent = self.ai.chooseMove(possiblePick)
-                
                 for i in range(0,len(possiblePick)):
                     pick = self.ai.chooseMove(possiblePick[i])
                     pion = self.getCase(pick)
                     x = pion[0]
                     y = pion[1]
                     possibleMove[pion] = self.checkMovable(x,y)
+                possibleMove = self.ai.evaluateMoves(possibleMove,self.checkerBoard)
+                bestMove = self.ai.pickBestMove(possibleMove)
+                print("Possible Moves:")
                 for key, value in possibleMove.items():
-                    print("Pion : ",key,"\nPossible move : ",value)
+                    print(" ")
+                    print(f"↳ [Pion: {key}]")
+                    for i in range(0,len(value)):
+                        print(f"  Move: {value[i][0]} Points: {value[i][1]}")
+                print("")     
+                print(f"Best Move: {bestMove[0]} ⎇  {bestMove[1][0]} Points: {bestMove[1][1]}")
                 pion = self.ai.chooseMove(random.choice(list(possibleMove.keys())))
-                positionPick = random.choice(possibleMove[self.getCase(pion)])
-                pick = self.ai.chooseMove((positionPick[1],positionPick[0]))
-                previousPosition = self.getCase(pion)
+                positionPick = bestMove[1]
+                pick = self.ai.chooseMove((positionPick[0][1],positionPick[0][0]))
+                previousPosition = bestMove[0]
                 self.lastPostion = (previousPosition[1],previousPosition[0])
                 self.pionMove(pick)
     # change common pion to a dame (1 to 2 or -1 to -2)
@@ -252,24 +252,25 @@ class Damier(tk.Canvas):
         possibleMoves = []
         if y != 0:
             if self.checkerBoard[x+-self.playerTurn,y-1] == 0:
-                possibleMoves.append((x+-self.playerTurn,y-1))
+                possibleMoves.append([(x+-self.playerTurn,y-1),0])
         if y != 9:
             if self.checkerBoard[x+-self.playerTurn,y+1] == 0:
-                possibleMoves.append((x+-self.playerTurn,y+1))
-        if y > 1:
-            if self.checkerBoard[x+-self.playerTurn*2,y-2] == 0 and self.checkerBoard[x+-self.playerTurn,y-1] == -self.playerTurn:
-                possibleMoves.append((x+-self.playerTurn*2,y-2))
-        if y < 8:
-            if self.checkerBoard[x+-self.playerTurn*2,y+2] == 0 and self.checkerBoard[x+-self.playerTurn,y+1] == -self.playerTurn:
-                possibleMoves.append((x+-self.playerTurn*2,y+2))  
+                possibleMoves.append([(x+-self.playerTurn,y+1),0])
+        if x < 8:
+            if y > 1:
+                if self.checkerBoard[x+-self.playerTurn*2,y-2] == 0 and self.checkerBoard[x+-self.playerTurn,y-1] == -self.playerTurn:
+                    possibleMoves.append([(x+-self.playerTurn*2,y-2),0])
+            if y < 8:
+                if self.checkerBoard[x+-self.playerTurn*2,y+2] == 0 and self.checkerBoard[x+-self.playerTurn,y+1] == -self.playerTurn:
+                    possibleMoves.append([(x+-self.playerTurn*2,y+2),0])
         return possibleMoves     
      
-    def checkDamier(self):
+    def removePion(self):
         for i in range(10):
             if self.checkerBoard[0][i] == 1:
-                self.checkerBoard[0][i] = 2
+                self.checkerBoard[0][i] = 0
             if self.checkerBoard[9][i] == -1:
-                self.checkerBoard[9][i] = -2
+                self.checkerBoard[9][i] = 0
         
     # WIN
     def checkWin(self):
@@ -339,23 +340,6 @@ class Damier(tk.Canvas):
     # put df in csv
     # def dfCSV(self,df):
     #     df.to_csv('data.csv', index=False)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
