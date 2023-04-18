@@ -5,15 +5,16 @@ import pandas as pd
 import AIChecker
 import random
 import warnings
+import matplotlib.pyplot as plt
 
 
 
 class Damier(tk.Canvas):
     if not os.path.exists("data.csv"):
-        df = pd.DataFrame(columns=["Player", "AI"])
+        df = pd.DataFrame(columns=["Player", "AI", "Winner"])
         df.to_csv("data.csv", index=False)
     else:   
-        df = pd.DataFrame(columns=["Player", "AI"])
+        df = pd.DataFrame(columns=["Player", "AI", "Winner"])
     checkerBoard = np.zeros((10, 10))
     playerTurn = 1
     state = 0
@@ -291,12 +292,16 @@ class Damier(tk.Canvas):
             self.win = 1
             self.df_CSV()
             self.printWinner(self.win)
-            exit(0)
+            fenetre.destroy()
+
+
         if 1 not in self.checkerBoard:
             self.win = -1
             self.df_CSV()
             self.printWinner(self.win)
-            exit(0)
+            fenetre.destroy()
+
+
 
     def printWinner(self,win):
         if win == 1:
@@ -325,9 +330,71 @@ class Damier(tk.Canvas):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 warnings.filterwarnings("ignore")
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
 damier.refreshMap()
 damier.bind("<Button-1>", damier.turn)
 fenetre.mainloop()
+
+
+
+data = pd.read_csv("data.csv")
+player = data["Player"]
+player = player.value_counts()
+player = player.to_dict()
+AI = data["AI"]
+AI = AI.value_counts()
+AI = AI.to_dict()
+
+fig, ax = plt.subplots(3)
+ax[0].bar(player.keys(), player.values(), color='g')
+ax[0].set_xlabel("Player")
+ax[0].set_ylabel("Occurence")
+ax[0].set_title("Player moves")
+ax[1].bar(AI.keys(), AI.values(), color='r')
+ax[1].set_xlabel("AI")
+ax[1].set_ylabel("Occurence")
+ax[1].set_title("AI moves")
+
+winner = data["Winner"]
+winner = winner.value_counts()
+winner = winner.to_dict()
+ax[2].text(0.5, 0.5, winner.keys(), fontsize=12, ha='center')
+ax[2].set_title("Winner")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
