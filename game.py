@@ -199,7 +199,6 @@ class Damier(tk.Canvas):
     # GAMEPLAY     
 
     def turn(self, event):
-        # ADD AI TURN HERE
         # select player pion
         if self.state == 0:
             pionPostion = self.choosePion(event)
@@ -328,40 +327,12 @@ class Damier(tk.Canvas):
 
         data.to_csv("data.csv", index=False)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 warnings.filterwarnings("ignore")
 fenetre = tk.Tk()
 damier = Damier(fenetre, 500, 500, "tan1", "tan4")
 damier.refreshMap()
 damier.bind("<Button-1>", damier.turn)
 fenetre.mainloop()
-
-
 
 data = pd.read_csv("data.csv")
 player = data["Player"]
@@ -381,10 +352,8 @@ ax[1].set_xlabel("AI")
 ax[1].set_ylabel("Occurence")
 ax[1].set_title("AI moves")
 
-winner = data["Winner"]
-winner = winner.value_counts()
-winner = winner.to_dict()
-ax[2].text(0.5, 0.5, winner.keys(), fontsize=12, ha='center')
+winner = data["Winner"].iloc[0]
+ax[2].text(0.5, 0.5, winner, fontsize=12, ha='center')
 ax[2].set_title("Winner")
 plt.show()
 
